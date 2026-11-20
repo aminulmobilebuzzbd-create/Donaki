@@ -6,7 +6,11 @@ import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kDemoData) await seedDemoDataIfEmpty();
+  if (kDemoData) {
+    await seedDemoDataIfEmpty();
+    // স্ক্রিনশট স্ক্রিপ্ট যাতে বোতামগুলো খুঁজে পায়
+    SemanticsBinding.instance.ensureSemantics();
+  }
   runApp(const DokaniApp());
 }
 

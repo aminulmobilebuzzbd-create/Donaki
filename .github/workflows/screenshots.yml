@@ -10,6 +10,9 @@ on:
       - 'tool/screenshots.sh'
       - 'lib/demo_data.dart'
 
+permissions:
+  contents: write
+
 jobs:
   screenshots:
     runs-on: ubuntu-latest
@@ -57,3 +60,16 @@ jobs:
         with:
           name: screenshots
           path: shots/
+
+      # ছবিগুলো 'screenshots' ব্রাঞ্চে রাখা হয়, যাতে GitHub এ সরাসরি দেখা যায়
+      - name: Publish screenshots to branch
+        if: always()
+        run: |
+          [ -d shots ] || exit 0
+          cd shots
+          git init -q -b screenshots
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Screenshots from run ${{ github.run_id }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" screenshots
