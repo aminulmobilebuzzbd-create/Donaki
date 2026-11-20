@@ -37,6 +37,7 @@ jobs:
           python3 tool/patch_android.py
           flutter pub get
           dart run flutter_launcher_icons
+          dart run flutter_native_splash:create
           flutter pub get
           flutter build apk --release --dart-define=DEMO_DATA=true --target-platform android-x64
           cp build/app/outputs/flutter-apk/app-release.apk dokani-demo.apk

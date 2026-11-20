@@ -22,6 +22,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
 
 flutter:
   uses-material-design: true
@@ -36,3 +37,13 @@ flutter_launcher_icons:
   adaptive_icon_background: "#141414"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
   remove_alpha_ios: true
+
+# অ্যাপ চালু হওয়ার মুহূর্তের পর্দা: কালো পটভূমিতে লোগো। `dart run flutter_native_splash:create` চালালে তৈরি হয়।
+flutter_native_splash:
+  color: "#161616"
+  image: assets/brand/logo.png
+  android_12:
+    color: "#161616"
+    image: assets/icon/icon_foreground.png
+    icon_background_color: "#161616"
+  ios: false
