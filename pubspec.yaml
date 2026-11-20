@@ -1,7 +1,7 @@
 name: dokani
 description: "দোকানি - দোকানের বাকি খাতা, বেচাকেনা ও স্টকের হিসাব। পুরো অফলাইন।"
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -13,6 +13,9 @@ dependencies:
   path: ^1.9.0
   url_launcher: ^6.3.1
   share_plus: ^10.1.4
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
+  mobile_scanner: ^7.0.0
 
 dev_dependencies:
   flutter_test:

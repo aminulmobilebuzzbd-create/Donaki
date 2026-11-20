@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../db/database.dart';
@@ -5,8 +7,9 @@ import '../format.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'product_form_screen.dart';
 
-/// পণ্যের তালিকা, দাম আর কতটা স্টকে আছে।
+/// পণ্যের তালিকা: ছবি, ক্রয়/বিক্রয়মূল্য, লাভ আর কতটা স্টকে আছে।
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
 
@@ -16,22 +19,16 @@ class StockScreen extends StatefulWidget {
 
 class _StockScreenState extends State<StockScreen> {
   late Future<List<Product>> _future = AppDb.instance.products();
+  String _query = '';
 
   void _reload() => setState(() => _future = AppDb.instance.products());
 
-  Future<void> _edit([Product? existing]) async {
-    final result = await showDialog<_ProductAction>(
-      context: context,
-      builder: (_) => _ProductDialog(existing: existing),
+  Future<void> _open([Product? existing]) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => ProductFormScreen(existing: existing)),
     );
-    if (result == null) return;
-    if (result.delete && existing?.id != null) {
-      if (!mounted || !await confirm(context, '${existing!.name} মুছে ফেলবেন?')) return;
-      await AppDb.instance.deleteProduct(existing.id!);
-    } else if (result.product != null) {
-      await AppDb.instance.saveProduct(result.product!);
-    }
-    _reload();
+    if (changed == true) _reload();
   }
 
   Future<void> _adjust(Product p, double delta) async {
@@ -44,34 +41,59 @@ class _StockScreenState extends State<StockScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('স্টক')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _edit(),
+        onPressed: () => _open(),
         icon: const Icon(Icons.add),
         label: const Text('পণ্য যোগ'),
       ),
       body: FutureBuilder<List<Product>>(
         future: _future,
         builder: (context, snap) {
+          if (snap.hasError) return Center(child: Text('সমস্যা হয়েছে: ${snap.error}'));
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-          final items = snap.data!;
-          if (items.isEmpty) {
+          final all = snap.data!;
+          if (all.isEmpty) {
             return const EmptyState(icon: Icons.inventory_2_outlined, message: 'এখনো কোনো পণ্য যোগ করা হয়নি');
           }
-          final lowCount = items.where((p) => p.isLow).length;
-          final value = items.fold<double>(0, (s, p) => s + p.price * p.stock);
+          final q = _query.toLowerCase();
+          final items = q.isEmpty
+              ? all
+              : all
+                  .where((p) =>
+                      p.name.toLowerCase().contains(q) || p.category.toLowerCase().contains(q) || p.barcode.contains(q))
+                  .toList();
+          final lowCount = all.where((p) => p.isLow).length;
+          final costValue = all.fold<double>(0, (s, p) => s + p.costPrice * p.stock);
+          final saleValue = all.fold<double>(0, (s, p) => s + p.price * p.stock);
+
           return ListView(
             padding: const EdgeInsets.only(bottom: 96),
             children: [
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                 child: Row(children: [
-                  Expanded(child: SummaryCard(label: 'স্টকের মোট মূল্য', amount: value, color: AppColors.brand, icon: Icons.inventory)),
-                  const SizedBox(width: 8),
+                  Expanded(child: SummaryCard(label: 'স্টক (ক্রয়মূল্যে)', amount: costValue, color: AppColors.brand)),
+                  const SizedBox(width: 6),
+                  Expanded(child: SummaryCard(label: 'স্টক (বিক্রয়মূল্যে)', amount: saleValue, color: AppColors.inn)),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+                child: Row(children: [
+                  Expanded(
+                    child: SummaryCard(
+                        label: 'সম্ভাব্য লাভ', amount: saleValue - costValue, color: AppColors.accent, icon: Icons.trending_up),
+                  ),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Card(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          const Text('কম স্টক'),
+                          const Row(children: [
+                            Icon(Icons.warning_amber, size: 18, color: AppColors.out),
+                            SizedBox(width: 6),
+                            Text('কম স্টক'),
+                          ]),
                           const SizedBox(height: 6),
                           Text('${bn(lowCount)} টি পণ্য',
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -82,29 +104,19 @@ class _StockScreenState extends State<StockScreen> {
                   ),
                 ]),
               ),
-              for (final p in items) ...[
-                ListTile(
-                  tileColor: Colors.white,
-                  onTap: () => _edit(p),
-                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('দাম ${taka(p.price)}'),
-                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                    IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: p.stock > 0 ? () => _adjust(p, -1) : null),
-                    SizedBox(
-                      width: 48,
-                      child: Text(
-                        bn(_qty(p.stock)),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: p.isLow ? AppColors.out : Colors.black87,
-                        ),
-                      ),
-                    ),
-                    IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: () => _adjust(p, 1)),
-                  ]),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'নাম, ক্যাটাগরি বা বারকোড দিয়ে খুঁজুন',
+                    isDense: true,
+                  ),
+                  onChanged: (v) => setState(() => _query = v.trim()),
                 ),
+              ),
+              for (final p in items) ...[
+                _ProductTile(product: p, onTap: () => _open(p), onAdjust: (d) => _adjust(p, d)),
                 const Divider(height: 1),
               ],
             ],
@@ -115,76 +127,83 @@ class _StockScreenState extends State<StockScreen> {
   }
 }
 
-String _qty(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2);
+String _qty(double v) => bn(v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2));
 
-class _ProductAction {
-  const _ProductAction({this.product, this.delete = false});
-  final Product? product;
-  final bool delete;
-}
-
-class _ProductDialog extends StatefulWidget {
-  const _ProductDialog({this.existing});
-  final Product? existing;
-
-  @override
-  State<_ProductDialog> createState() => _ProductDialogState();
-}
-
-class _ProductDialogState extends State<_ProductDialog> {
-  late final _name = TextEditingController(text: widget.existing?.name);
-  late final _price = TextEditingController(text: widget.existing == null ? '' : _qty(widget.existing!.price));
-  late final _stock = TextEditingController(text: widget.existing == null ? '' : _qty(widget.existing!.stock));
-  String? _error;
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _price.dispose();
-    _stock.dispose();
-    super.dispose();
-  }
-
-  void _save() {
-    final name = _name.text.trim();
-    if (name.isEmpty) {
-      setState(() => _error = 'পণ্যের নাম লিখুন');
-      return;
-    }
-    Navigator.pop(
-      context,
-      _ProductAction(
-        product: Product(
-          id: widget.existing?.id,
-          name: name,
-          price: parseAmount(_price.text) ?? 0,
-          stock: parseAmount(_stock.text) ?? 0,
-        ),
-      ),
-    );
-  }
+class _ProductTile extends StatelessWidget {
+  const _ProductTile({required this.product, required this.onTap, required this.onAdjust});
+  final Product product;
+  final VoidCallback onTap;
+  final ValueChanged<double> onAdjust;
 
   @override
   Widget build(BuildContext context) {
-    const numKeyboard = TextInputType.numberWithOptions(decimal: true);
-    return AlertDialog(
-      title: Text(widget.existing == null ? 'নতুন পণ্য' : 'পণ্য এডিট'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: _name, autofocus: true, decoration: InputDecoration(labelText: 'পণ্যের নাম', errorText: _error)),
-        const SizedBox(height: 12),
-        TextField(controller: _price, keyboardType: numKeyboard, decoration: const InputDecoration(labelText: 'বিক্রয় মূল্য', prefixText: '৳ ')),
-        const SizedBox(height: 12),
-        TextField(controller: _stock, keyboardType: numKeyboard, decoration: const InputDecoration(labelText: 'স্টকে আছে (পরিমাণ)')),
-      ]),
-      actions: [
-        if (widget.existing != null)
-          TextButton(
-            onPressed: () => Navigator.pop(context, const _ProductAction(delete: true)),
-            child: Text('মুছুন', style: TextStyle(color: Colors.red.shade700)),
-          ),
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('বাতিল')),
-        FilledButton(onPressed: _save, child: const Text('সেভ')),
-      ],
+    final p = product;
+    final img = p.coverImage;
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+          child: Row(children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 56,
+                height: 56,
+                child: img == null
+                    ? Container(
+                        color: AppColors.brand.withValues(alpha: 0.1),
+                        child: const Icon(Icons.inventory_2, color: AppColors.brand),
+                      )
+                    : Image.file(
+                        File(img),
+                        fit: BoxFit.cover,
+                        cacheWidth: 150,
+                        errorBuilder: (_, __, ___) => Container(color: Colors.black12, child: const Icon(Icons.broken_image)),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                const SizedBox(height: 2),
+                Text(
+                  'বিক্রয় ${taka(p.price)}${p.costPrice > 0 ? '  ·  ক্রয় ${taka(p.costPrice)}' : ''}',
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                ),
+                if (p.costPrice > 0)
+                  Text(
+                    p.unitProfit >= 0 ? 'লাভ ${taka(p.unitProfit)} / ${p.unit}' : 'লোকসান ${taka(-p.unitProfit)} / ${p.unit}',
+                    style: TextStyle(fontSize: 12, color: p.unitProfit >= 0 ? AppColors.inn : AppColors.out),
+                  ),
+                if (p.category.isNotEmpty)
+                  Text(p.category, style: const TextStyle(fontSize: 12, color: Colors.black45)),
+              ]),
+            ),
+            Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: p.stock > 0 ? () => onAdjust(-1) : null,
+                ),
+                Text(
+                  _qty(p.stock),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: p.isLow ? AppColors.out : Colors.black87),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () => onAdjust(1),
+                ),
+              ]),
+              Text(p.unit, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            ]),
+          ]),
+        ),
+      ),
     );
   }
 }

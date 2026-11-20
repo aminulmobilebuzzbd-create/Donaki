@@ -30,6 +30,10 @@ sleep 1
 adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null; sleep 3
 tap 'ক্যাশবক্স' && shot 04-cashbook
 tap 'স্টক' && shot 05-stock
+tap 'পণ্য যোগ' && sleep 1 && adb shell input keyevent 4 && shot 05a-product-form-top
+adb shell input swipe 540 1700 540 500 400; shot 05b-product-form-middle
+adb shell input swipe 540 1700 540 400 400; shot 05c-product-form-bottom
+back
 tap 'রিপোর্ট' && shot 06-report-today
 tap 'এই মাস' && shot 07-report-month
 ls -la shots

@@ -18,7 +18,7 @@ class AppDb {
   Future<Database> _open() async {
     return openDatabase(
       await filePath(),
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE customers(
@@ -53,8 +53,40 @@ class AppDb {
             price REAL NOT NULL DEFAULT 0,
             stock REAL NOT NULL DEFAULT 0
           )''');
+        await _addProductColumnsV2(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) await _addProductColumnsV2(db);
       },
     );
+  }
+
+  /// ভার্সন ২: পণ্যের ক্রয়মূল্য, একক, ক্যাটাগরি, ছবি, বারকোড ইত্যাদি। পুরনো পণ্য ঠিক থাকে।
+  static Future<void> _addProductColumnsV2(Database db) async {
+    const columns = {
+      'cost_price': 'REAL NOT NULL DEFAULT 0',
+      'unit': "TEXT NOT NULL DEFAULT 'পিস'",
+      'category': "TEXT NOT NULL DEFAULT ''",
+      'sub_category': "TEXT NOT NULL DEFAULT ''",
+      'description': "TEXT NOT NULL DEFAULT ''",
+      'wholesale': 'INTEGER NOT NULL DEFAULT 0',
+      'wholesale_price': 'REAL NOT NULL DEFAULT 0',
+      'wholesale_min_qty': 'REAL NOT NULL DEFAULT 0',
+      'low_alert': 'INTEGER NOT NULL DEFAULT 1',
+      'low_alert_qty': 'REAL NOT NULL DEFAULT 5',
+      'vat': 'INTEGER NOT NULL DEFAULT 0',
+      'vat_percent': 'REAL NOT NULL DEFAULT 0',
+      'warranty': 'INTEGER NOT NULL DEFAULT 0',
+      'warranty_months': 'INTEGER NOT NULL DEFAULT 0',
+      'discount': 'INTEGER NOT NULL DEFAULT 0',
+      'discount_amount': 'REAL NOT NULL DEFAULT 0',
+      'discount_is_percent': 'INTEGER NOT NULL DEFAULT 0',
+      'barcode': "TEXT NOT NULL DEFAULT ''",
+      'images': "TEXT NOT NULL DEFAULT ''",
+    };
+    for (final e in columns.entries) {
+      await db.execute('ALTER TABLE products ADD COLUMN ${e.key} ${e.value}');
+    }
   }
 
   // ---------------- কাস্টমার ----------------
@@ -159,6 +191,18 @@ class AppDb {
 
   Future<void> adjustStock(int id, double delta) async {
     await (await db).rawUpdate('UPDATE products SET stock = MAX(stock + ?, 0) WHERE id = ?', [delta, id]);
+  }
+
+  Future<List<String>> productCategories() async {
+    final rows = await (await db).rawQuery(
+        "SELECT DISTINCT category FROM products WHERE category != '' ORDER BY category COLLATE NOCASE");
+    return rows.map((r) => r['category'] as String).toList();
+  }
+
+  Future<bool> barcodeExists(String code, {int? exceptId}) async {
+    final rows = await (await db).query('products',
+        columns: ['id'], where: 'barcode = ? AND id != ?', whereArgs: [code, exceptId ?? -1], limit: 1);
+    return rows.isNotEmpty;
   }
 
   Future<void> deleteProduct(int id) async {

@@ -42,12 +42,12 @@ Future<void> seedDemoDataIfEmpty() async {
   }
 
   const products = [
-    Product(name: 'মিনিকেট চাল (কেজি)', price: 72, stock: 48),
-    Product(name: 'মসুর ডাল (কেজি)', price: 110, stock: 22),
-    Product(name: 'সয়াবিন তেল (লিটার)', price: 175, stock: 4),
-    Product(name: 'চিনি (কেজি)', price: 130, stock: 15),
-    Product(name: 'লাক্স সাবান', price: 65, stock: 3),
-    Product(name: 'ডিম (হালি)', price: 52, stock: 30),
+    Product(name: 'মিনিকেট চাল', price: 72, costPrice: 64, stock: 48, unit: 'কেজি', category: 'চাল-ডাল'),
+    Product(name: 'মসুর ডাল', price: 110, costPrice: 98, stock: 22, unit: 'কেজি', category: 'চাল-ডাল'),
+    Product(name: 'সয়াবিন তেল', price: 175, costPrice: 162, stock: 4, unit: 'লিটার', category: 'তেল-মসলা'),
+    Product(name: 'চিনি', price: 130, costPrice: 118, stock: 15, unit: 'কেজি', category: 'মুদি'),
+    Product(name: 'গায়ে মাখা সাবান', price: 65, costPrice: 56, stock: 3, unit: 'পিস', category: 'প্রসাধনী'),
+    Product(name: 'ডিম', price: 52, costPrice: 46, stock: 30, unit: 'হালি', category: 'মুদি'),
   ];
   for (final p in products) {
     await db.saveProduct(p);
