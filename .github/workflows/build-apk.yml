@@ -30,6 +30,8 @@ jobs:
           flutter create --org com.dokani --project-name dokani --platforms android .
           rm -f test/widget_test.dart
           python3 tool/patch_android.py
+          flutter pub get
+          dart run flutter_launcher_icons
 
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings
