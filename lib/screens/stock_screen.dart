@@ -27,7 +27,7 @@ class _StockScreenState extends State<StockScreen> {
     if (result == null) return;
     if (result.delete && existing?.id != null) {
       if (!mounted || !await confirm(context, '${existing!.name} মুছে ফেলবেন?')) return;
-      await AppDb.instance.deleteProduct(existing!.id!);
+      await AppDb.instance.deleteProduct(existing.id!);
     } else if (result.product != null) {
       await AppDb.instance.saveProduct(result.product!);
     }

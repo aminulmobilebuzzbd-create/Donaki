@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'demo_data.dart';
 import 'screens/home_screen.dart';
 import 'theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kDemoData) await seedDemoDataIfEmpty();
   runApp(const DokaniApp());
 }
 
