@@ -29,7 +29,7 @@ flutter:
 # অ্যাপের আইকন (দোকানের লোগো)। বিল্ডের সময় `dart run flutter_launcher_icons` চালালে তৈরি হয়।
 flutter_launcher_icons:
   android: true
-  ios: true
+  ios: false  # iOS এ বানালে true করে দিন
   image_path: "assets/icon/icon.png"
   adaptive_icon_background: "#141414"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
