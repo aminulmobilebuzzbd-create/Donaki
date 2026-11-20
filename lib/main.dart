@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import 'demo_data.dart';
-import 'screens/home_screen.dart';
+import 'widgets/brand.dart';
 import 'theme.dart';
 
 Future<void> main() async {
@@ -21,10 +21,10 @@ class DokaniApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'দোকানি',
+      title: 'প্রাইম দোকানি',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }

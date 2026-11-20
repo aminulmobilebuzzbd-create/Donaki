@@ -6,6 +6,7 @@ import '../db/database.dart';
 import '../format.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 import 'product_form_screen.dart';
 
@@ -39,7 +40,7 @@ class _StockScreenState extends State<StockScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('স্টক')),
+      appBar: brandAppBar('স্টক'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _open(),
         icon: const Icon(Icons.add),
@@ -71,7 +72,7 @@ class _StockScreenState extends State<StockScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                 child: Row(children: [
-                  Expanded(child: SummaryCard(label: 'স্টক (ক্রয়মূল্যে)', amount: costValue, color: AppColors.brand)),
+                  Expanded(child: SummaryCard(label: 'স্টক (ক্রয়মূল্যে)', amount: costValue, color: AppColors.dark)),
                   const SizedBox(width: 6),
                   Expanded(child: SummaryCard(label: 'স্টক (বিক্রয়মূল্যে)', amount: saleValue, color: AppColors.inn)),
                 ]),

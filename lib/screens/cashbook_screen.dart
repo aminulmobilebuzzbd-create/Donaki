@@ -5,6 +5,7 @@ import '../format.dart';
 import '../models.dart';
 import '../theme.dart';
 import '../widgets/amount_sheet.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 
 /// দিনভিত্তিক বিক্রি ও খরচের খাতা।
@@ -61,7 +62,7 @@ class _CashbookScreenState extends State<CashbookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ক্যাশবক্স')),
+      appBar: brandAppBar('ক্যাশবক্স'),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -106,7 +107,7 @@ class _CashbookScreenState extends State<CashbookScreen> {
                     const SizedBox(width: 6),
                     Expanded(child: SummaryCard(label: 'খরচ', amount: expense, color: AppColors.out)),
                     const SizedBox(width: 6),
-                    Expanded(child: SummaryCard(label: 'হাতে রইল', amount: net, color: net >= 0 ? AppColors.brand : AppColors.out)),
+                    Expanded(child: SummaryCard(label: 'হাতে রইল', amount: net, color: net >= 0 ? AppColors.dark : AppColors.out)),
                   ]),
                 ),
                 const SizedBox(height: 8),

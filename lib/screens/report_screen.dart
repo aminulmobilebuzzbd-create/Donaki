@@ -5,6 +5,7 @@ import '../db/database.dart';
 import '../format.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -47,12 +48,9 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('রিপোর্ট'),
-        actions: [
-          IconButton(tooltip: 'ব্যাকআপ', icon: const Icon(Icons.backup_outlined), onPressed: _backup),
-        ],
-      ),
+      appBar: brandAppBar('রিপোর্ট', actions: [
+        IconButton(tooltip: 'ব্যাকআপ', icon: const Icon(Icons.backup_outlined), onPressed: _backup),
+      ]),
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -78,18 +76,36 @@ class _ReportScreenState extends State<ReportScreen> {
               final r = snap.data!;
               final profit = r.profit;
               return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Card(
-                  color: profit >= 0 ? AppColors.brand : AppColors.out,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(children: [
-                      Text(profit >= 0 ? 'লাভ (বিক্রি - খরচ)' : 'লোকসান (বিক্রি - খরচ)',
-                          style: const TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 6),
-                      Text(taka(profit.abs()),
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ]),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.darkGradient,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.yellow.withValues(alpha: 0.5)),
                   ),
+                  child: Row(children: [
+                    const BrandLogo(size: 84),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(profit >= 0 ? 'লাভ (বিক্রি - খরচ)' : 'লোকসান (বিক্রি - খরচ)',
+                            style: const TextStyle(color: Colors.white70)),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            taka(profit.abs()),
+                            style: TextStyle(
+                              color: profit >= 0 ? AppColors.yellow : AppColors.outOnDark,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ]),
                 ),
                 const SizedBox(height: 8),
                 Row(children: [

@@ -25,6 +25,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/brand/
 
 # অ্যাপের আইকন (দোকানের লোগো)। বিল্ডের সময় `dart run flutter_launcher_icons` চালালে তৈরি হয়।
 flutter_launcher_icons:

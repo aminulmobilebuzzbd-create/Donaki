@@ -4,6 +4,7 @@ import '../db/database.dart';
 import '../format.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 import 'customer_detail_screen.dart';
 
@@ -37,7 +38,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('দোকানি · বাকি খাতা')),
+      appBar: brandAppBar('বাকি খাতা'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _add,
         icon: const Icon(Icons.person_add_alt_1),
@@ -61,12 +62,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
               : all.where((c) => c.name.toLowerCase().contains(q) || (c.phone ?? '').contains(q)).toList();
 
           return Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              decoration: BoxDecoration(
+                gradient: AppColors.darkGradient,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.yellow.withValues(alpha: 0.5)),
+              ),
               child: Row(children: [
-                Expanded(child: SummaryCard(label: 'মোট পাবো', amount: receivable, color: AppColors.out, icon: Icons.call_received)),
-                const SizedBox(width: 8),
-                Expanded(child: SummaryCard(label: 'মোট দেবো', amount: payable, color: AppColors.inn, icon: Icons.call_made)),
+                Expanded(child: _DarkStat(label: 'মোট পাবো', amount: receivable, color: AppColors.yellow)),
+                Container(width: 1, height: 44, color: Colors.white24),
+                const SizedBox(width: 16),
+                Expanded(child: _DarkStat(label: 'মোট দেবো', amount: payable, color: AppColors.innOnDark)),
               ]),
             ),
             Padding(
@@ -97,6 +105,26 @@ class _CustomersScreenState extends State<CustomersScreen> {
         },
       ),
     );
+  }
+}
+
+class _DarkStat extends StatelessWidget {
+  const _DarkStat({required this.label, required this.amount, required this.color});
+  final String label;
+  final double amount;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: const TextStyle(color: Colors.white70)),
+      const SizedBox(height: 4),
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(taka(amount), style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.w800)),
+      ),
+    ]);
   }
 }
 

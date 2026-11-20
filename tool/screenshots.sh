@@ -19,7 +19,8 @@ back() { adb shell input keyevent 4; sleep 1; }
 adb install -r dokani-demo.apk
 adb shell settings put system screen_off_timeout 600000
 adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null
-sleep 12
+sleep 1.2; adb exec-out screencap -p > shots/00-splash.png; echo "saved 00-splash"
+sleep 10
 
 shot 01-baki-khata
 tap 'রহিম মিয়া' && shot 02-customer-ledger
